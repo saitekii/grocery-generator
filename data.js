@@ -110,36 +110,36 @@ CATEGORIES.forEach((cat) => {
 });
 
 const MEALS_NO_COOK = [
-  { id: "nc3", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["sardines", "wholeGrainBread", "saladGreens"], highProtein: true },
-  { id: "nc4", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedTuna", "avocado", "tortillas", "saladGreens"], highProtein: true },
-  { id: "nc6", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["blackBeans", "avocado", "tortillas", "bellPeppers"], highProtein: false },
-  { id: "nc7", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["eggs", "apple", "almonds"], highProtein: true },
-  { id: "nc8", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["chickpeas", "cucumber", "oliveOil"], highProtein: false },
-  { id: "nc9", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedSalmon", "cucumber", "wholeGrainBread"], highProtein: true },
-  { id: "nc10", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedTuna", "blackBeans", "bellPeppers", "oliveOil"], highProtein: true },
-  { id: "nc11", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cottageCheese", "cucumber", "oliveOil"], highProtein: true },
+  { id: "nc3", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["sardines", "wholeGrainBread", "saladGreens"], highProtein: true, name: "Sardines on toast", seasoning: ["lemon", "black pepper"] },
+  { id: "nc4", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedTuna", "avocado", "tortillas", "saladGreens"], highProtein: true, name: "Tuna avocado wrap", seasoning: ["lemon", "black pepper"] },
+  { id: "nc6", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["blackBeans", "avocado", "tortillas", "bellPeppers"], highProtein: false, name: "Black bean & avocado wrap", seasoning: ["lime", "chili powder"] },
+  { id: "nc7", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["eggs", "apple", "almonds"], highProtein: true, name: "Protein snack plate", seasoning: ["sea salt"] },
+  { id: "nc8", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["chickpeas", "cucumber", "oliveOil"], highProtein: false, name: "Chickpea cucumber salad", seasoning: ["lemon", "salt", "black pepper"] },
+  { id: "nc9", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedSalmon", "cucumber", "wholeGrainBread"], highProtein: true, name: "Salmon salad sandwich", seasoning: ["lemon", "dill", "black pepper"] },
+  { id: "nc10", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedTuna", "blackBeans", "bellPeppers", "oliveOil"], highProtein: true, name: "Tuna & bean salad", seasoning: ["red wine vinegar", "black pepper"] },
+  { id: "nc11", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cottageCheese", "cucumber", "oliveOil"], highProtein: true, name: "Savory cottage cheese bowl", seasoning: ["black pepper", "chili flakes"] },
 ];
 
 const MEALS_MICROWAVE = [
-  { id: "mw1", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "cannedTuna", "frozenMixedVeg"], highProtein: true },
-  { id: "mw3", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "cannedSalmon", "spinach"], highProtein: true },
-  { id: "mw4", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "blackBeans", "frozenBroccoli"], highProtein: false },
-  { id: "mw5", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["lentils", "rice", "frozenMixedVeg"], highProtein: false },
-  { id: "mw6", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "eggs", "frozenMixedVeg"], highProtein: true },
-  { id: "mw8", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "chickpeas", "frozenMixedVeg"], highProtein: false },
-  { id: "mw9", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "blackBeans", "bellPeppers"], highProtein: false },
-  { id: "mw10", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "shrimp", "frozenBroccoli"], highProtein: true },
+  { id: "mw1", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "cannedTuna", "frozenMixedVeg"], highProtein: true, name: "Tuna rice bowl", seasoning: ["soy sauce", "garlic powder"] },
+  { id: "mw3", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "cannedSalmon", "spinach"], highProtein: true, name: "Loaded jacket potato with salmon", seasoning: ["black pepper", "lemon"] },
+  { id: "mw4", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "blackBeans", "frozenBroccoli"], highProtein: false, name: "Rice & beans bowl", seasoning: ["cumin", "chili powder"] },
+  { id: "mw5", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["lentils", "rice", "frozenMixedVeg"], highProtein: false, name: "Lentil & rice bowl", seasoning: ["cumin", "turmeric"] },
+  { id: "mw6", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "eggs", "frozenMixedVeg"], highProtein: true, name: "Egg fried rice", seasoning: ["soy sauce", "garlic powder", "black pepper"] },
+  { id: "mw8", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "chickpeas", "frozenMixedVeg"], highProtein: false, name: "Chickpea rice bowl", seasoning: ["curry powder", "garlic powder"] },
+  { id: "mw9", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "blackBeans", "bellPeppers"], highProtein: false, name: "Loaded baked potato", seasoning: ["chili powder", "black pepper"] },
+  { id: "mw10", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "shrimp", "frozenBroccoli"], highProtein: true, name: "Shrimp & broccoli rice bowl", seasoning: ["soy sauce", "garlic powder"] },
 ];
 
 const MEALS_QUICK_COOK = [
-  { id: "qc1", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "spinach", "wholeGrainBread", "oliveOil"], highProtein: true },
-  { id: "qc2", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "frozenMixedVeg", "rice", "oliveOil"], highProtein: false },
-  { id: "qc3", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "rice", "frozenMixedVeg", "oliveOil"], highProtein: true },
-  { id: "qc4", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["cannedSalmon", "potatoes", "frozenBroccoli", "oliveOil"], highProtein: true },
-  { id: "qc5", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "blackBeans", "tortillas", "bellPeppers", "oliveOil"], highProtein: true },
-  { id: "qc6", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "tortillas", "bellPeppers", "oliveOil"], highProtein: true },
-  { id: "qc7", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "potatoes", "spinach", "oliveOil"], highProtein: true },
-  { id: "qc8", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "rice", "bellPeppers", "oliveOil"], highProtein: false },
+  { id: "qc1", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "spinach", "wholeGrainBread", "oliveOil"], highProtein: true, name: "Scrambled eggs & spinach on toast", seasoning: ["black pepper", "chili flakes"] },
+  { id: "qc2", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "frozenMixedVeg", "rice", "oliveOil"], highProtein: false, name: "Tofu vegetable stir fry", seasoning: ["soy sauce", "garlic", "ginger"] },
+  { id: "qc3", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "rice", "frozenMixedVeg", "oliveOil"], highProtein: true, name: "Shrimp stir fry", seasoning: ["soy sauce", "garlic"] },
+  { id: "qc4", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["cannedSalmon", "potatoes", "frozenBroccoli", "oliveOil"], highProtein: true, name: "Pan-seared salmon with potatoes & broccoli", seasoning: ["lemon", "black pepper", "dill"] },
+  { id: "qc5", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "blackBeans", "tortillas", "bellPeppers", "oliveOil"], highProtein: true, name: "Egg & black bean breakfast tacos", seasoning: ["cumin", "hot sauce"] },
+  { id: "qc6", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "tortillas", "bellPeppers", "oliveOil"], highProtein: true, name: "Shrimp fajita tacos", seasoning: ["chili powder", "lime"] },
+  { id: "qc7", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "potatoes", "spinach", "oliveOil"], highProtein: true, name: "Garlic shrimp & potato skillet", seasoning: ["garlic", "black pepper"] },
+  { id: "qc8", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "rice", "bellPeppers", "oliveOil"], highProtein: false, name: "Tofu & pepper stir fry", seasoning: ["soy sauce", "garlic"] },
 ];
 
 const ALL_MEALS = [...MEALS_NO_COOK, ...MEALS_MICROWAVE, ...MEALS_QUICK_COOK];

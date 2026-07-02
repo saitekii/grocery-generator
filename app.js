@@ -111,7 +111,7 @@
     return Array.from(seen);
   }
 
-  function mealName(meal) {
+  function mealIngredients(meal) {
     return meal.items.map((id) => ITEMS[id].name).join(" + ");
   }
 
@@ -208,10 +208,23 @@
 
       const name = document.createElement("div");
       name.className = "meal-name";
-      name.textContent = mealName(meal);
+      name.textContent = meal.name;
+
+      const ingredients = document.createElement("div");
+      ingredients.className = "meal-ingredients";
+      ingredients.textContent = mealIngredients(meal);
 
       li.appendChild(badge);
       li.appendChild(name);
+      li.appendChild(ingredients);
+
+      if (meal.seasoning && meal.seasoning.length > 0) {
+        const seasoning = document.createElement("div");
+        seasoning.className = "meal-seasoning";
+        seasoning.textContent = `Season with: ${meal.seasoning.join(", ")}`;
+        li.appendChild(seasoning);
+      }
+
       els.mealsList.appendChild(li);
     });
   }

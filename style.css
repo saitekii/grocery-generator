@@ -274,5 +274,19 @@ details[open] summary::before {
 }
 
 .meal-name {
-  font-size: 0.98rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.meal-ingredients {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.meal-seasoning {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 4px;
 }

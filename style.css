@@ -146,6 +146,19 @@ main {
   font-size: 1.05rem;
 }
 
+.fixed-note {
+  margin: -4px 0 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.fixed-breakfast-note {
+  margin: -4px 0 12px;
+  color: var(--primary-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .nutrient-summary {
   margin: 0 0 12px;
   color: var(--muted);

@@ -13,6 +13,7 @@
     groceryListSection: document.getElementById("groceryListSection"),
     groceryList: document.getElementById("groceryList"),
     mealsSection: document.getElementById("mealsSection"),
+    fixedBreakfastNote: document.getElementById("fixedBreakfastNote"),
     mealsList: document.getElementById("mealsList"),
     nutrientSection: document.getElementById("nutrientSection"),
     nutrientSummary: document.getElementById("nutrientSummary"),
@@ -44,7 +45,7 @@
 
   function filterMeals(toggles) {
     const allowedTypes = getAllowedTypes(toggles.effort, toggles.ultraLazy);
-    let pool = ALL_MEALS.filter((m) => allowedTypes.includes(m.type));
+    let pool = GENERATOR_MEALS.filter((m) => allowedTypes.includes(m.type));
 
     if (toggles.highProtein) {
       const narrowed = pool.filter((m) => m.highProtein);
@@ -76,8 +77,12 @@
     return set;
   }
 
+  function fixedBreakfastNutrients() {
+    return mealNutrients(FIXED_BREAKFAST);
+  }
+
   function computeCoverage(meals) {
-    const covered = new Set();
+    const covered = fixedBreakfastNutrients();
     meals.forEach((meal) => mealNutrients(meal).forEach((n) => covered.add(n)));
     return covered;
   }
@@ -85,6 +90,7 @@
   // Greedily swaps in eligible meals that cover currently-missing
   // watchlist nutrients, so a week isn't just random - it also nudges
   // toward broader micronutrient coverage where the filtered pool allows it.
+  // Nutrients already supplied by the fixed daily breakfast don't need a swap.
   function improveCoverage(meals, pool) {
     const result = meals.slice();
     NUTRIENT_WATCHLIST.forEach((nutrient) => {
@@ -100,7 +106,7 @@
   }
 
   function buildGroceryIds(meals) {
-    const seen = new Set();
+    const seen = new Set(FIXED_BREAKFAST.items);
     meals.forEach((meal) => meal.items.forEach((id) => seen.add(id)));
     return Array.from(seen);
   }
@@ -186,6 +192,10 @@
   }
 
   function renderMeals() {
+    els.fixedBreakfastNote.textContent = `${FIXED_BREAKFAST.label}: ${FIXED_BREAKFAST.items
+      .map((id) => ITEMS[id].name)
+      .join(" + ")}`;
+
     els.mealsList.innerHTML = "";
     state.mealIds.forEach((mealId) => {
       const meal = ALL_MEALS.find((m) => m.id === mealId);

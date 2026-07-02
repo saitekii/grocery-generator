@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>Quick Grocery Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Quick Grocery Generator</h1>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Controls">
+      <button id="generateBtn" class="btn-primary" type="button">Generate Week</button>
+
+      <div class="toggle-row">
+        <label class="toggle">
+          <input type="checkbox" id="ultraLazy" />
+          <span>Ultra lazy mode</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="highProtein" />
+          <span>High protein mode</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="extraCheap" />
+          <span>Extra cheap mode</span>
+        </label>
+      </div>
+
+      <div class="slider-row">
+        <label for="effort">Cooking effort: <span id="effortValue">50</span></label>
+        <input type="range" id="effort" min="0" max="100" value="50" />
+      </div>
+    </section>
+
+    <section class="output">
+      <p id="emptyState" class="empty-state">Tap "Generate Week" to get your grocery list and meals.</p>
+
+      <section id="groceryListSection" class="grocery-section hidden">
+        <h2>Grocery List</h2>
+        <div id="groceryList"></div>
+      </section>
+
+      <section id="mealsSection" class="meals-section hidden">
+        <h2>Meals</h2>
+        <ol id="mealsList" class="meals-list"></ol>
+      </section>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

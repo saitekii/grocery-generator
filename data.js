@@ -16,6 +16,7 @@ const PROTEINS = [
   { id: "blackBeans", name: "Black beans (canned)", cheap: true, nutrients: ["iron", "folate", "magnesium"] },
   { id: "lentils", name: "Lentils", cheap: true, nutrients: ["iron", "folate", "potassium", "zinc"] },
   { id: "kefir", name: "Kefir", cheap: true, nutrients: ["calcium", "vitaminB12", "iodine"] },
+  { id: "chickpeas", name: "Chickpeas (canned)", cheap: true, nutrients: ["iron", "folate", "zinc"] },
 ];
 
 const CARBS = [
@@ -32,6 +33,7 @@ const VEGETABLES = [
   { id: "spinach", name: "Spinach", cheap: true, nutrients: ["iron", "vitaminA", "vitaminK", "magnesium", "folate"] },
   { id: "saladGreens", name: "Salad greens", cheap: true, nutrients: ["vitaminA", "vitaminK", "folate"] },
   { id: "bellPeppers", name: "Bell peppers", cheap: false, nutrients: ["vitaminC", "vitaminA"] },
+  { id: "cucumber", name: "Cucumber", cheap: true, nutrients: ["vitaminK"] },
 ];
 
 const FRUITS = [
@@ -105,6 +107,10 @@ const MEALS_NO_COOK = [
   { id: "nc5", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["greekYogurt", "peanutButter", "banana"], highProtein: false, breakfastStyle: true },
   { id: "nc6", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["blackBeans", "avocado", "tortillas"], highProtein: false },
   { id: "nc7", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["eggs", "apple", "almonds"], highProtein: true },
+  { id: "nc8", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["chickpeas", "cucumber", "oliveOil"], highProtein: false },
+  { id: "nc9", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedSalmon", "cucumber", "wholeGrainBread"], highProtein: true },
+  { id: "nc10", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cannedTuna", "blackBeans", "bellPeppers"], highProtein: true },
+  { id: "nc11", type: "no-cook", minMinutes: 0, maxMinutes: 3, items: ["cottageCheese", "cucumber", "oliveOil"], highProtein: true },
 ];
 
 const MEALS_MICROWAVE = [
@@ -115,6 +121,9 @@ const MEALS_MICROWAVE = [
   { id: "mw5", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["lentils", "rice", "frozenMixedVeg"], highProtein: false },
   { id: "mw6", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "tofu", "spinach"], highProtein: false },
   { id: "mw7", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["oats", "frozenMango", "peanutButter"], highProtein: false, breakfastStyle: true },
+  { id: "mw8", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "chickpeas", "frozenMixedVeg"], highProtein: false },
+  { id: "mw9", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "blackBeans", "bellPeppers"], highProtein: false },
+  { id: "mw10", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "shrimp", "frozenBroccoli"], highProtein: true },
 ];
 
 const MEALS_QUICK_COOK = [
@@ -124,6 +133,8 @@ const MEALS_QUICK_COOK = [
   { id: "qc4", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["cannedSalmon", "potatoes", "frozenBroccoli", "oliveOil"], highProtein: true },
   { id: "qc5", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "blackBeans", "tortillas", "bellPeppers", "oliveOil"], highProtein: true },
   { id: "qc6", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "tortillas", "bellPeppers", "oliveOil"], highProtein: true },
+  { id: "qc7", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "potatoes", "spinach", "oliveOil"], highProtein: true },
+  { id: "qc8", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "rice", "bellPeppers", "oliveOil"], highProtein: false },
 ];
 
 const ALL_MEALS = [...MEALS_NO_COOK, ...MEALS_MICROWAVE, ...MEALS_QUICK_COOK];

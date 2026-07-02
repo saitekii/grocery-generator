@@ -45,7 +45,7 @@
 
   function filterMeals(toggles) {
     const allowedTypes = getAllowedTypes(toggles.effort, toggles.ultraLazy);
-    let pool = GENERATOR_MEALS.filter((m) => allowedTypes.includes(m.type));
+    let pool = ALL_MEALS.filter((m) => allowedTypes.includes(m.type));
 
     if (toggles.highProtein) {
       const narrowed = pool.filter((m) => m.highProtein);

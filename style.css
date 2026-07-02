@@ -130,7 +130,8 @@ main {
 }
 
 .grocery-section,
-.meals-section {
+.meals-section,
+.nutrient-section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -139,9 +140,42 @@ main {
 }
 
 .grocery-section h2,
-.meals-section h2 {
+.meals-section h2,
+.nutrient-section h2 {
   margin: 0 0 12px;
   font-size: 1.05rem;
+}
+
+.nutrient-summary {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.nutrient-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.chip-covered {
+  color: var(--primary-dark);
+  background: #e6f4f2;
+  border-color: #bfe3df;
+}
+
+.chip-missing {
+  color: var(--muted);
+  background: transparent;
+  border-color: var(--border);
 }
 
 details {

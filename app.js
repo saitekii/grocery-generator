@@ -14,6 +14,9 @@
     groceryList: document.getElementById("groceryList"),
     mealsSection: document.getElementById("mealsSection"),
     mealsList: document.getElementById("mealsList"),
+    nutrientSection: document.getElementById("nutrientSection"),
+    nutrientSummary: document.getElementById("nutrientSummary"),
+    nutrientChips: document.getElementById("nutrientChips"),
   };
 
   // { groceryIds: string[], checked: {id: bool}, mealIds: string[], toggles: {...} }
@@ -64,6 +67,35 @@
       if (shuffled.length === 0) shuffled = shuffle(pool);
       result.push(shuffled.pop());
     }
+    return result;
+  }
+
+  function mealNutrients(meal) {
+    const set = new Set();
+    meal.items.forEach((id) => (ITEMS[id].nutrients || []).forEach((n) => set.add(n)));
+    return set;
+  }
+
+  function computeCoverage(meals) {
+    const covered = new Set();
+    meals.forEach((meal) => mealNutrients(meal).forEach((n) => covered.add(n)));
+    return covered;
+  }
+
+  // Greedily swaps in eligible meals that cover currently-missing
+  // watchlist nutrients, so a week isn't just random - it also nudges
+  // toward broader micronutrient coverage where the filtered pool allows it.
+  function improveCoverage(meals, pool) {
+    const result = meals.slice();
+    NUTRIENT_WATCHLIST.forEach((nutrient) => {
+      if (computeCoverage(result).has(nutrient)) return;
+      const candidate = shuffle(pool).find(
+        (m) => !result.includes(m) && mealNutrients(m).has(nutrient)
+      );
+      if (!candidate) return;
+      const swapIndex = Math.floor(Math.random() * result.length);
+      result[swapIndex] = candidate;
+    });
     return result;
   }
 
@@ -174,21 +206,41 @@
     });
   }
 
+  function renderNutrientCoverage() {
+    const meals = state.mealIds
+      .map((id) => ALL_MEALS.find((m) => m.id === id))
+      .filter(Boolean);
+    const covered = computeCoverage(meals);
+
+    els.nutrientSummary.textContent = `${covered.size} / ${NUTRIENT_WATCHLIST.length} covered this week`;
+
+    els.nutrientChips.innerHTML = "";
+    NUTRIENT_WATCHLIST.forEach((key) => {
+      const chip = document.createElement("span");
+      const isCovered = covered.has(key);
+      chip.className = `chip ${isCovered ? "chip-covered" : "chip-missing"}`;
+      chip.textContent = `${isCovered ? "✓" : "–"} ${NUTRIENTS[key]}`;
+      els.nutrientChips.appendChild(chip);
+    });
+  }
+
   function renderOutput() {
     const hasList = state && state.groceryIds.length > 0;
     els.emptyState.classList.toggle("hidden", hasList);
     els.groceryListSection.classList.toggle("hidden", !hasList);
     els.mealsSection.classList.toggle("hidden", !hasList);
+    els.nutrientSection.classList.toggle("hidden", !hasList);
     if (hasList) {
       renderGroceryList();
       renderMeals();
+      renderNutrientCoverage();
     }
   }
 
   function generateWeek() {
     const toggles = readToggles();
     const pool = filterMeals(toggles);
-    const meals = pickMeals(pool, MEAL_COUNT);
+    const meals = improveCoverage(pickMeals(pool, MEAL_COUNT), pool);
     const groceryIds = buildGroceryIds(meals);
 
     state = {

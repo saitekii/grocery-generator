@@ -1,49 +1,74 @@
 // Curated food pools and meal templates.
 // `cheap` marks items that keep "Extra cheap mode" meals affordable.
+// `nutrients` lists the micronutrients each item is a genuinely good source
+// of (not exact RDA amounts) - used to nudge weekly meal picks toward
+// covering NUTRIENT_WATCHLIST rather than repeating the same few foods.
 
 const PROTEINS = [
-  { id: "cannedTuna", name: "Canned tuna", cheap: true },
-  { id: "cannedSalmon", name: "Canned salmon", cheap: false },
-  { id: "sardines", name: "Sardines", cheap: true },
-  { id: "shrimp", name: "Shrimp (frozen)", cheap: false },
-  { id: "eggs", name: "Eggs", cheap: true },
-  { id: "tofu", name: "Tofu", cheap: true },
-  { id: "greekYogurt", name: "Plain Greek yogurt", cheap: true },
-  { id: "cottageCheese", name: "Cottage cheese", cheap: true },
-  { id: "blackBeans", name: "Black beans (canned)", cheap: true },
-  { id: "lentils", name: "Lentils", cheap: true },
+  { id: "cannedTuna", name: "Canned tuna", cheap: true, nutrients: ["vitaminB12", "selenium", "vitaminD"] },
+  { id: "cannedSalmon", name: "Canned salmon", cheap: false, nutrients: ["omega3", "vitaminD", "vitaminB12", "calcium"] },
+  { id: "sardines", name: "Sardines", cheap: true, nutrients: ["omega3", "vitaminD", "calcium", "vitaminB12"] },
+  { id: "shrimp", name: "Shrimp (frozen)", cheap: false, nutrients: ["zinc", "selenium", "iodine", "vitaminB12"] },
+  { id: "eggs", name: "Eggs", cheap: true, nutrients: ["vitaminD", "vitaminB12", "selenium", "vitaminA"] },
+  { id: "tofu", name: "Tofu", cheap: true, nutrients: ["iron", "calcium", "magnesium"] },
+  { id: "greekYogurt", name: "Plain Greek yogurt", cheap: true, nutrients: ["calcium", "vitaminB12", "iodine"] },
+  { id: "cottageCheese", name: "Cottage cheese", cheap: true, nutrients: ["calcium", "vitaminB12", "selenium"] },
+  { id: "blackBeans", name: "Black beans (canned)", cheap: true, nutrients: ["iron", "folate", "magnesium"] },
+  { id: "lentils", name: "Lentils", cheap: true, nutrients: ["iron", "folate", "potassium", "zinc"] },
 ];
 
 const CARBS = [
-  { id: "oats", name: "Oats", cheap: true },
-  { id: "rice", name: "Rice", cheap: true },
-  { id: "potatoes", name: "Potatoes", cheap: true },
-  { id: "wholeGrainBread", name: "Whole grain bread", cheap: true },
-  { id: "tortillas", name: "Tortillas", cheap: true },
+  { id: "oats", name: "Oats", cheap: true, nutrients: ["magnesium", "zinc"] },
+  { id: "rice", name: "Rice", cheap: true, nutrients: ["magnesium"] },
+  { id: "potatoes", name: "Potatoes", cheap: true, nutrients: ["potassium", "vitaminC"] },
+  { id: "wholeGrainBread", name: "Whole grain bread", cheap: true, nutrients: ["magnesium", "iron"] },
+  { id: "tortillas", name: "Tortillas", cheap: true, nutrients: ["iron"] },
 ];
 
 const VEGETABLES = [
-  { id: "frozenMixedVeg", name: "Frozen mixed vegetables", cheap: true },
-  { id: "frozenBroccoli", name: "Frozen broccoli", cheap: true },
-  { id: "spinach", name: "Spinach", cheap: true },
-  { id: "saladGreens", name: "Salad greens", cheap: true },
-  { id: "bellPeppers", name: "Bell peppers", cheap: false },
+  { id: "frozenMixedVeg", name: "Frozen mixed vegetables", cheap: true, nutrients: ["vitaminA", "vitaminC", "potassium"] },
+  { id: "frozenBroccoli", name: "Frozen broccoli", cheap: true, nutrients: ["vitaminC", "vitaminK", "folate"] },
+  { id: "spinach", name: "Spinach", cheap: true, nutrients: ["iron", "vitaminA", "vitaminK", "magnesium", "folate"] },
+  { id: "saladGreens", name: "Salad greens", cheap: true, nutrients: ["vitaminA", "vitaminK", "folate"] },
+  { id: "bellPeppers", name: "Bell peppers", cheap: false, nutrients: ["vitaminC", "vitaminA"] },
 ];
 
 const FRUITS = [
-  { id: "frozenBerries", name: "Frozen berries", cheap: true },
-  { id: "banana", name: "Banana", cheap: true },
-  { id: "apple", name: "Apple", cheap: true },
-  { id: "frozenMango", name: "Frozen mango", cheap: false },
+  { id: "frozenBerries", name: "Frozen berries", cheap: true, nutrients: ["vitaminC"] },
+  { id: "banana", name: "Banana", cheap: true, nutrients: ["potassium", "vitaminC"] },
+  { id: "apple", name: "Apple", cheap: true, nutrients: ["vitaminC"] },
+  { id: "frozenMango", name: "Frozen mango", cheap: false, nutrients: ["vitaminA", "vitaminC"] },
 ];
 
 const FATS = [
-  { id: "oliveOil", name: "Olive oil", cheap: true },
-  { id: "peanutButter", name: "Peanut butter (no sugar added)", cheap: true },
-  { id: "almonds", name: "Almonds", cheap: false },
-  { id: "avocado", name: "Avocado", cheap: false },
-  { id: "walnuts", name: "Walnuts", cheap: false },
+  { id: "oliveOil", name: "Olive oil", cheap: true, nutrients: ["vitaminE"] },
+  { id: "peanutButter", name: "Peanut butter (no sugar added)", cheap: true, nutrients: ["magnesium", "vitaminE"] },
+  { id: "almonds", name: "Almonds", cheap: false, nutrients: ["vitaminE", "magnesium", "calcium"] },
+  { id: "avocado", name: "Avocado", cheap: false, nutrients: ["potassium", "vitaminE", "folate", "vitaminK"] },
+  { id: "walnuts", name: "Walnuts", cheap: false, nutrients: ["omega3", "magnesium"] },
 ];
+
+// Practical watchlist: nutrients pescatarians most commonly under-eat,
+// not a full RDA table. Order drives display order.
+const NUTRIENTS = {
+  omega3: "Omega-3",
+  vitaminB12: "Vitamin B12",
+  vitaminD: "Vitamin D",
+  iron: "Iron",
+  zinc: "Zinc",
+  iodine: "Iodine",
+  selenium: "Selenium",
+  calcium: "Calcium",
+  magnesium: "Magnesium",
+  potassium: "Potassium",
+  folate: "Folate",
+  vitaminA: "Vitamin A",
+  vitaminC: "Vitamin C",
+  vitaminE: "Vitamin E",
+  vitaminK: "Vitamin K",
+};
+
+const NUTRIENT_WATCHLIST = Object.keys(NUTRIENTS);
 
 // Category order drives grocery-list display order.
 const CATEGORIES = [
@@ -54,7 +79,7 @@ const CATEGORIES = [
   { key: "fats", label: "Fats", items: FATS },
 ];
 
-// Flat lookup: id -> { id, name, cheap, category }
+// Flat lookup: id -> { id, name, cheap, nutrients, category }
 const ITEMS = {};
 CATEGORIES.forEach((cat) => {
   cat.items.forEach((item) => {

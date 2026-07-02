@@ -125,7 +125,7 @@ const MEALS_MICROWAVE = [
   { id: "mw3", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "cannedSalmon", "spinach"], highProtein: true },
   { id: "mw4", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "blackBeans", "frozenBroccoli"], highProtein: false },
   { id: "mw5", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["lentils", "rice", "frozenMixedVeg"], highProtein: false },
-  { id: "mw6", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "eggs", "spinach"], highProtein: true },
+  { id: "mw6", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "eggs", "frozenMixedVeg"], highProtein: true },
   { id: "mw8", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "chickpeas", "frozenMixedVeg"], highProtein: false },
   { id: "mw9", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["potatoes", "blackBeans", "bellPeppers"], highProtein: false },
   { id: "mw10", type: "microwave", minMinutes: 3, maxMinutes: 8, items: ["rice", "shrimp", "frozenBroccoli"], highProtein: true },

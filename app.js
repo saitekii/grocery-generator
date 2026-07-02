@@ -171,8 +171,12 @@
       ul.className = "item-list";
       idsInCategory.forEach((id) => {
         const li = document.createElement("li");
+
+        const row = document.createElement("div");
+        row.className = "item-row";
+
         const label = document.createElement("label");
-        label.className = "item-row";
+        label.className = "item-checkbox-label";
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -189,7 +193,34 @@
 
         label.appendChild(checkbox);
         label.appendChild(span);
-        li.appendChild(label);
+
+        const nutrientKeys = ITEMS[id].nutrients || [];
+        const nutrientToggle = document.createElement("button");
+        nutrientToggle.type = "button";
+        nutrientToggle.className = "nutrient-toggle";
+        nutrientToggle.textContent = "ⓘ";
+        nutrientToggle.setAttribute("aria-expanded", "false");
+        nutrientToggle.setAttribute(
+          "aria-label",
+          `Show nutrients for ${ITEMS[id].name}`
+        );
+
+        const nutrientDetail = document.createElement("div");
+        nutrientDetail.className = "item-nutrients hidden";
+        nutrientDetail.textContent =
+          nutrientKeys.length > 0
+            ? `Contains: ${nutrientKeys.map((k) => NUTRIENTS[k]).join(", ")}`
+            : "No tracked micronutrients";
+
+        nutrientToggle.addEventListener("click", () => {
+          const isHidden = nutrientDetail.classList.toggle("hidden");
+          nutrientToggle.setAttribute("aria-expanded", String(!isHidden));
+        });
+
+        row.appendChild(label);
+        row.appendChild(nutrientToggle);
+        li.appendChild(row);
+        li.appendChild(nutrientDetail);
         ul.appendChild(li);
       });
 

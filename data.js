@@ -13,15 +13,15 @@ const PROTEINS = [
   { id: "tofu", name: "Tofu", cheap: true, nutrients: ["iron", "calcium", "magnesium", "manganese", "copper", "choline"] },
   { id: "greekYogurt", name: "Plain Greek yogurt", cheap: true, nutrients: ["calcium", "vitaminB12", "iodine", "vitaminB2"] },
   { id: "cottageCheese", name: "Cottage cheese", cheap: true, nutrients: ["calcium", "vitaminB12", "selenium", "vitaminB2"] },
-  { id: "blackBeans", name: "Black beans (canned)", cheap: true, nutrients: ["iron", "folate", "magnesium", "vitaminB1", "manganese"] },
-  { id: "lentils", name: "Lentils", cheap: true, nutrients: ["iron", "folate", "potassium", "zinc", "vitaminB1", "manganese"] },
+  { id: "blackBeans", name: "Black beans (canned)", cheap: true, nutrients: ["iron", "folate", "magnesium", "vitaminB1", "manganese", "fermentableFiber"] },
+  { id: "lentils", name: "Lentils", cheap: true, nutrients: ["iron", "folate", "potassium", "zinc", "vitaminB1", "manganese", "fermentableFiber"] },
   { id: "kefir", name: "Kefir", cheap: true, nutrients: ["calcium", "vitaminB12", "iodine", "vitaminB2"] },
-  { id: "chickpeas", name: "Chickpeas (canned)", cheap: true, nutrients: ["iron", "folate", "zinc", "vitaminB6", "manganese"] },
+  { id: "chickpeas", name: "Chickpeas (canned)", cheap: true, nutrients: ["iron", "folate", "zinc", "vitaminB6", "manganese", "fermentableFiber"] },
   { id: "cheddarCheese", name: "Shredded cheddar cheese", cheap: true, nutrients: ["calcium", "vitaminA", "vitaminB2", "vitaminB12"] },
 ];
 
 const CARBS = [
-  { id: "oats", name: "Oats", cheap: true, nutrients: ["magnesium", "zinc", "vitaminB1", "manganese"] },
+  { id: "oats", name: "Oats", cheap: true, nutrients: ["magnesium", "zinc", "vitaminB1", "manganese", "fermentableFiber"] },
   { id: "rice", name: "Rice", cheap: true, nutrients: ["magnesium", "manganese"] },
   { id: "potatoes", name: "Potatoes", cheap: true, nutrients: ["potassium", "vitaminC", "vitaminB6"] },
   { id: "wholeGrainBread", name: "Whole grain bread", cheap: true, nutrients: ["magnesium", "iron", "vitaminB1"] },
@@ -30,16 +30,17 @@ const CARBS = [
 
 const VEGETABLES = [
   { id: "frozenMixedVeg", name: "Frozen mixed vegetables", cheap: true, nutrients: ["vitaminA", "vitaminC", "potassium"] },
-  { id: "frozenBroccoli", name: "Frozen broccoli", cheap: true, nutrients: ["vitaminC", "vitaminK", "folate", "manganese"] },
+  { id: "frozenBroccoli", name: "Frozen broccoli", cheap: true, nutrients: ["vitaminC", "vitaminK", "folate", "manganese", "sulforaphane"] },
   { id: "spinach", name: "Spinach", cheap: true, nutrients: ["iron", "vitaminA", "vitaminK", "magnesium", "folate", "manganese", "copper"] },
   { id: "saladGreens", name: "Salad greens", cheap: true, nutrients: ["vitaminA", "vitaminK", "folate"] },
   { id: "bellPeppers", name: "Bell peppers", cheap: false, nutrients: ["vitaminC", "vitaminA", "vitaminB6"] },
   { id: "cucumber", name: "Cucumber", cheap: true, nutrients: ["vitaminK"] },
+  { id: "redCabbage", name: "Red cabbage", cheap: true, nutrients: ["anthocyanins", "vitaminC", "vitaminK"] },
 ];
 
 const FRUITS = [
-  { id: "frozenBerries", name: "Frozen berries", cheap: true, nutrients: ["vitaminC", "manganese"] },
-  { id: "banana", name: "Banana", cheap: true, nutrients: ["potassium", "vitaminC", "vitaminB6"] },
+  { id: "frozenBerries", name: "Frozen berries", cheap: true, nutrients: ["vitaminC", "manganese", "anthocyanins"] },
+  { id: "banana", name: "Banana", cheap: true, nutrients: ["potassium", "vitaminC", "vitaminB6", "fermentableFiber"] },
   { id: "apple", name: "Apple", cheap: true, nutrients: ["vitaminC"] },
   { id: "frozenMango", name: "Frozen mango", cheap: false, nutrients: ["vitaminA", "vitaminC", "vitaminB6"] },
 ];
@@ -51,7 +52,7 @@ const FATS = [
   { id: "oliveOil", name: "Olive oil", cheap: true, nutrients: ["vitaminE"], background: true },
   { id: "peanutButter", name: "Peanut butter (no sugar added)", cheap: true, nutrients: ["magnesium", "vitaminE", "vitaminB3", "manganese"] },
   { id: "almonds", name: "Almonds", cheap: false, nutrients: ["vitaminE", "magnesium", "calcium", "vitaminB2", "manganese", "copper"] },
-  { id: "avocado", name: "Avocado", cheap: false, nutrients: ["potassium", "vitaminE", "folate", "vitaminK", "vitaminB6", "copper"] },
+  { id: "avocado", name: "Avocado", cheap: false, nutrients: ["potassium", "vitaminE", "folate", "vitaminK", "vitaminB6", "copper", "fermentableFiber"] },
   { id: "walnuts", name: "Walnuts", cheap: false, nutrients: ["omega3", "magnesium", "copper", "manganese"] },
 ];
 
@@ -59,7 +60,7 @@ const FATS = [
 // dried spices/condiments (cumin, chili powder, soy sauce, salt), which stay
 // in a "Season with" note only since most people already keep those stocked.
 const PANTRY = [
-  { id: "garlic", name: "Garlic", cheap: true, nutrients: ["vitaminB6", "manganese"] },
+  { id: "garlic", name: "Garlic", cheap: true, nutrients: ["vitaminB6", "manganese", "fermentableFiber"] },
   { id: "ginger", name: "Ginger", cheap: true, nutrients: ["manganese"] },
   { id: "lemon", name: "Lemon", cheap: true, nutrients: ["vitaminC"] },
   { id: "lime", name: "Lime", cheap: true, nutrients: ["vitaminC"] },
@@ -94,6 +95,9 @@ const NUTRIENTS = {
   manganese: "Manganese",
   iodine: "Iodine",
   selenium: "Selenium",
+  anthocyanins: "Anthocyanins",
+  sulforaphane: "Sulforaphane",
+  fermentableFiber: "Fermentable fiber",
 };
 
 const NUTRIENT_WATCHLIST = Object.keys(NUTRIENTS);
@@ -154,7 +158,7 @@ const MEALS_QUICK_COOK = [
   { id: "qc3", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "rice", "frozenMixedVeg", "oliveOil", "garlic"], highProtein: true, name: "Shrimp stir fry", seasoning: ["soy sauce", "garlic"] },
   { id: "qc4", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["cannedSalmon", "potatoes", "frozenBroccoli", "oliveOil", "lemon"], highProtein: true, name: "Pan-seared salmon with potatoes & broccoli", seasoning: ["lemon", "black pepper", "dill"] },
   { id: "qc5", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["eggs", "blackBeans", "tortillas", "bellPeppers", "oliveOil", "cheddarCheese"], highProtein: true, name: "Egg & black bean breakfast tacos", seasoning: ["cumin", "hot sauce"] },
-  { id: "qc6", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "tortillas", "bellPeppers", "oliveOil", "lime"], highProtein: true, name: "Shrimp fajita tacos", seasoning: ["chili powder", "lime"] },
+  { id: "qc6", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "tortillas", "bellPeppers", "redCabbage", "oliveOil", "lime"], highProtein: true, name: "Shrimp fajita tacos with slaw", seasoning: ["chili powder", "lime"] },
   { id: "qc7", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "potatoes", "spinach", "oliveOil", "garlic"], highProtein: true, name: "Garlic shrimp & potato skillet", seasoning: ["garlic", "black pepper"] },
   { id: "qc8", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["tofu", "rice", "bellPeppers", "oliveOil", "garlic"], highProtein: false, name: "Tofu & pepper stir fry", seasoning: ["soy sauce", "garlic"] },
   { id: "qc9", type: "quick-cook", minMinutes: 5, maxMinutes: 10, items: ["shrimp", "rice", "frozenMango", "bellPeppers", "oliveOil", "lime"], highProtein: true, name: "Shrimp & mango rice bowl", seasoning: ["lime", "chili powder", "cilantro"] },

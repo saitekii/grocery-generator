@@ -111,8 +111,15 @@
     return Array.from(seen);
   }
 
+  // Cooking mediums (olive oil) and pantry aromatics (garlic, lemon, ...)
+  // are on the grocery list and in the seasoning note, but aren't things
+  // you'd name when describing the dish - so they're left out of the
+  // headline ingredient line.
   function mealIngredients(meal) {
-    return meal.items.map((id) => ITEMS[id].name).join(" + ");
+    return meal.items
+      .filter((id) => ITEMS[id].category !== "pantry" && !ITEMS[id].background)
+      .map((id) => ITEMS[id].name)
+      .join(" + ");
   }
 
   function readToggles() {

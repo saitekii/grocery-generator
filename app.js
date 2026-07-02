@@ -18,6 +18,7 @@
     nutrientSection: document.getElementById("nutrientSection"),
     nutrientSummary: document.getElementById("nutrientSummary"),
     nutrientChips: document.getElementById("nutrientChips"),
+    nutrientSourceDetail: document.getElementById("nutrientSourceDetail"),
   };
 
   // { groceryIds: string[], checked: {id: bool}, mealIds: string[], toggles: {...} }
@@ -267,6 +268,40 @@
     });
   }
 
+  function nutrientSources(key) {
+    return Object.values(ITEMS).filter((item) =>
+      (item.nutrients || []).includes(key)
+    );
+  }
+
+  function showNutrientSources(key) {
+    const inListIds = new Set(state.groceryIds);
+
+    els.nutrientSourceDetail.innerHTML = "";
+
+    const label = document.createElement("div");
+    label.className = "nutrient-source-label";
+    label.textContent = `Foods with ${NUTRIENTS[key]}:`;
+    els.nutrientSourceDetail.appendChild(label);
+
+    const list = document.createElement("div");
+    list.className = "nutrient-source-list";
+    nutrientSources(key).forEach((item) => {
+      const tag = document.createElement("span");
+      tag.className = `source-tag${inListIds.has(item.id) ? " in-list" : ""}`;
+      tag.textContent = item.name;
+      list.appendChild(tag);
+    });
+    els.nutrientSourceDetail.appendChild(list);
+
+    const hint = document.createElement("div");
+    hint.className = "nutrient-source-hint";
+    hint.textContent = "Highlighted = already in this week's list";
+    els.nutrientSourceDetail.appendChild(hint);
+
+    els.nutrientSourceDetail.classList.remove("hidden");
+  }
+
   function renderNutrientCoverage() {
     const meals = state.mealIds
       .map((id) => ALL_MEALS.find((m) => m.id === id))
@@ -276,11 +311,34 @@
     els.nutrientSummary.textContent = `${covered.size} / ${NUTRIENT_WATCHLIST.length} covered this week`;
 
     els.nutrientChips.innerHTML = "";
+    els.nutrientSourceDetail.classList.add("hidden");
+    els.nutrientSourceDetail.innerHTML = "";
+
     NUTRIENT_WATCHLIST.forEach((key) => {
-      const chip = document.createElement("span");
       const isCovered = covered.has(key);
+      const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = `chip ${isCovered ? "chip-covered" : "chip-missing"}`;
       chip.textContent = `${isCovered ? "✓" : "–"} ${NUTRIENTS[key]}`;
+      chip.setAttribute("aria-expanded", "false");
+
+      chip.addEventListener("click", () => {
+        const wasActive = chip.classList.contains("chip-active");
+        els.nutrientChips.querySelectorAll(".chip-active").forEach((c) => {
+          c.classList.remove("chip-active");
+          c.setAttribute("aria-expanded", "false");
+        });
+
+        if (wasActive) {
+          els.nutrientSourceDetail.classList.add("hidden");
+          return;
+        }
+
+        chip.classList.add("chip-active");
+        chip.setAttribute("aria-expanded", "true");
+        showNutrientSources(key);
+      });
+
       els.nutrientChips.appendChild(chip);
     });
   }

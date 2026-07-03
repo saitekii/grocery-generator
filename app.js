@@ -48,7 +48,8 @@
   //       groceryIds: string[],
   //       checked: {id: bool}
   //     }
-  //   }
+  //   },
+  //   pantryStock: {id: bool} - items you keep stocked, global across weeks
   // }
   let state = null;
   let saveFlashTimer = null;
@@ -242,6 +243,20 @@
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // Persistent across weeks (unlike week.checked, which is per-week
+  // shopping progress) - items you keep stocked (olive oil, peanut
+  // butter, ...) stay off every future grocery list until you un-mark
+  // them, e.g. once you actually run out.
+  function toggleHaveAtHome(itemId) {
+    if (state.pantryStock[itemId]) {
+      delete state.pantryStock[itemId];
+    } else {
+      state.pantryStock[itemId] = true;
+    }
+    saveState();
+    renderGroceryPanel();
   }
 
   function flashSaved() {
@@ -556,6 +571,66 @@
     renderNutrientCoverage(week);
   }
 
+  function buildGroceryItemRow(id, week) {
+    const li = document.createElement("li");
+
+    const row = document.createElement("div");
+    row.className = "item-row";
+
+    const label = document.createElement("label");
+    label.className = "item-checkbox-label";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = !!week.checked[id];
+    checkbox.addEventListener("change", () => {
+      week.checked[id] = checkbox.checked;
+      span.classList.toggle("checked", checkbox.checked);
+      saveState();
+    });
+
+    const span = document.createElement("span");
+    span.textContent = ITEMS[id].name;
+    span.classList.toggle("checked", checkbox.checked);
+
+    label.appendChild(checkbox);
+    label.appendChild(span);
+
+    const nutrientKeys = ITEMS[id].nutrients || [];
+    const nutrientToggle = document.createElement("button");
+    nutrientToggle.type = "button";
+    nutrientToggle.className = "nutrient-toggle";
+    nutrientToggle.textContent = "ⓘ";
+    nutrientToggle.setAttribute("aria-expanded", "false");
+    nutrientToggle.setAttribute("aria-label", `Show nutrients for ${ITEMS[id].name}`);
+
+    const nutrientDetail = document.createElement("div");
+    nutrientDetail.className = "item-nutrients hidden";
+    nutrientDetail.textContent =
+      nutrientKeys.length > 0
+        ? `Contains: ${nutrientKeys.map((k) => NUTRIENTS[k]).join(", ")}`
+        : "No tracked micronutrients";
+
+    nutrientToggle.addEventListener("click", () => {
+      const isHidden = nutrientDetail.classList.toggle("hidden");
+      nutrientToggle.setAttribute("aria-expanded", String(!isHidden));
+    });
+
+    const haveToggle = document.createElement("button");
+    haveToggle.type = "button";
+    haveToggle.className = "have-toggle";
+    haveToggle.textContent = "🏠";
+    haveToggle.setAttribute("aria-label", `Mark ${ITEMS[id].name} as already have it`);
+    haveToggle.addEventListener("click", () => toggleHaveAtHome(id));
+
+    row.appendChild(label);
+    row.appendChild(nutrientToggle);
+    row.appendChild(haveToggle);
+    li.appendChild(row);
+    li.appendChild(nutrientDetail);
+    return li;
+  }
+
   function renderGroceryPanel() {
     els.groceryWeekLabel.textContent = `Week of ${formatWeekRange(state.activeWeekStart)}`;
     const week = getActiveWeek();
@@ -566,77 +641,69 @@
 
     if (!hasList) return;
 
-    els.groceryList.innerHTML = "";
-    CATEGORIES.forEach((cat) => {
-      const idsInCategory = week.groceryIds.filter((id) => ITEMS[id].category === cat.key);
-      if (idsInCategory.length === 0) return;
+    const toBuyIds = week.groceryIds.filter((id) => !state.pantryStock[id]);
+    const haveIds = week.groceryIds.filter((id) => state.pantryStock[id]);
 
+    els.groceryList.innerHTML = "";
+
+    if (toBuyIds.length === 0) {
+      const allStocked = document.createElement("p");
+      allStocked.className = "empty-state";
+      allStocked.textContent = "Nothing to buy - you already have everything this week needs.";
+      els.groceryList.appendChild(allStocked);
+    } else {
+      CATEGORIES.forEach((cat) => {
+        const idsInCategory = toBuyIds.filter((id) => ITEMS[id].category === cat.key);
+        if (idsInCategory.length === 0) return;
+
+        const details = document.createElement("details");
+        details.open = true;
+        const summary = document.createElement("summary");
+        summary.textContent = cat.label;
+        details.appendChild(summary);
+
+        const ul = document.createElement("ul");
+        ul.className = "item-list";
+        idsInCategory.forEach((id) => ul.appendChild(buildGroceryItemRow(id, week)));
+
+        details.appendChild(ul);
+        els.groceryList.appendChild(details);
+      });
+    }
+
+    if (haveIds.length > 0) {
       const details = document.createElement("details");
-      details.open = true;
+      details.className = "already-have";
       const summary = document.createElement("summary");
-      summary.textContent = cat.label;
+      summary.textContent = `Already have (${haveIds.length})`;
       details.appendChild(summary);
 
       const ul = document.createElement("ul");
       ul.className = "item-list";
-      idsInCategory.forEach((id) => {
+      haveIds.forEach((id) => {
         const li = document.createElement("li");
-
         const row = document.createElement("div");
-        row.className = "item-row";
-
-        const label = document.createElement("label");
-        label.className = "item-checkbox-label";
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = !!week.checked[id];
-        checkbox.addEventListener("change", () => {
-          week.checked[id] = checkbox.checked;
-          span.classList.toggle("checked", checkbox.checked);
-          saveState();
-        });
+        row.className = "already-have-row";
 
         const span = document.createElement("span");
         span.textContent = ITEMS[id].name;
-        span.classList.toggle("checked", checkbox.checked);
 
-        label.appendChild(checkbox);
-        label.appendChild(span);
+        const addBackBtn = document.createElement("button");
+        addBackBtn.type = "button";
+        addBackBtn.className = "add-back-btn";
+        addBackBtn.textContent = "Add back";
+        addBackBtn.setAttribute("aria-label", `Add ${ITEMS[id].name} back to the list`);
+        addBackBtn.addEventListener("click", () => toggleHaveAtHome(id));
 
-        const nutrientKeys = ITEMS[id].nutrients || [];
-        const nutrientToggle = document.createElement("button");
-        nutrientToggle.type = "button";
-        nutrientToggle.className = "nutrient-toggle";
-        nutrientToggle.textContent = "ⓘ";
-        nutrientToggle.setAttribute("aria-expanded", "false");
-        nutrientToggle.setAttribute(
-          "aria-label",
-          `Show nutrients for ${ITEMS[id].name}`
-        );
-
-        const nutrientDetail = document.createElement("div");
-        nutrientDetail.className = "item-nutrients hidden";
-        nutrientDetail.textContent =
-          nutrientKeys.length > 0
-            ? `Contains: ${nutrientKeys.map((k) => NUTRIENTS[k]).join(", ")}`
-            : "No tracked micronutrients";
-
-        nutrientToggle.addEventListener("click", () => {
-          const isHidden = nutrientDetail.classList.toggle("hidden");
-          nutrientToggle.setAttribute("aria-expanded", String(!isHidden));
-        });
-
-        row.appendChild(label);
-        row.appendChild(nutrientToggle);
+        row.appendChild(span);
+        row.appendChild(addBackBtn);
         li.appendChild(row);
-        li.appendChild(nutrientDetail);
         ul.appendChild(li);
       });
 
       details.appendChild(ul);
       els.groceryList.appendChild(details);
-    });
+    }
   }
 
   function renderSavedWeeksPanel() {
@@ -713,6 +780,7 @@
     } else {
       state = { activeWeekStart: formatDateISO(getMondayOfCurrentWeek()), weeks: {} };
     }
+    state.pantryStock = state.pantryStock || {};
 
     renderAll();
 

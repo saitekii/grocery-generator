@@ -16,6 +16,7 @@ Each meal card has its own controls — a No-cook / Microwave / Cook switch plus
 
 - **Fixed daily breakfast**: a recurring meal (oats, peanut butter, banana, kefir) that's always folded into the grocery list and counted toward nutrient coverage, so the generator doesn't waste picks duplicating it
 - **Tap for detail**: grocery items and nutrient chips are tappable — items show which tracked nutrients they contain, nutrient chips show which foods provide them and whether those foods are already in this week's list
+- **Already have**: tap the 🏠 on any grocery item to mark it as a staple you keep stocked (olive oil, peanut butter, ...) — it drops off every future week's list until you tap "Add back," e.g. once you actually run out. This is global, not per-week, unlike the shopping checkboxes.
 - **State**: every week (its meals, per-meal preferences, grocery list, checked items) auto-persists to `localStorage` on every change, keyed by its Monday date — no backend, no accounts
 
 ## Stack

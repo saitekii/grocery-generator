@@ -336,6 +336,55 @@ details[open] summary::before {
   padding: 0 4px 10px 38px;
 }
 
+.have-toggle {
+  background: none;
+  border: none;
+  font-size: 1.05rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.have-toggle:active {
+  opacity: 1;
+}
+
+details.already-have {
+  margin-top: 4px;
+}
+
+details.already-have summary {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.already-have-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.add-back-btn {
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--primary-dark);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .item-nutrients.hidden {
   display: none;
 }

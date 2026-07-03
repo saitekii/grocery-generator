@@ -6,12 +6,14 @@ A personal, lightweight web app that generates a weekly grocery list and simple 
 
 ## How it works
 
-Everything is deterministic and drawn from a curated, hardcoded food pool — no AI-generated text. One button ("Generate Week") picks 6 meal templates from `no-cook` / `microwave` / `quick-cook` pools, builds a grocery list grouped by category from their ingredients, and shows how well that week covers a watchlist of 22 micronutrients pescatarians commonly under-eat (omega-3, B12, iron, zinc, iodine, etc).
+Everything is deterministic and drawn from a curated, hardcoded food pool — no AI-generated text. One button ("Generate Week") plans one meal per day for 7 days from `no-cook` / `microwave` / `quick-cook` pools, builds a grocery list grouped by category from their ingredients, and shows how well that week covers a watchlist of ~25 micronutrients pescatarians commonly under-eat (omega-3, B12, iron, zinc, iodine, etc).
 
 - **Toggles**: Ultra lazy mode (no-cook only), High protein mode, Extra cheap mode
 - **Slider**: Cooking effort (0–100), gates which meal types are eligible
+- **Per-day regenerate**: each day has its own "Regenerate this day" button, which swaps in a replacement chosen to cover whatever nutrients are still missing across the rest of the week, while avoiding duplicating a meal already used on another day
 - **Fixed daily breakfast**: a recurring meal (oats, peanut butter, banana, kefir) that's always folded into the grocery list and counted toward nutrient coverage, so the generator doesn't waste picks duplicating it
-- **State**: grocery list, checked items, meals, and toggles persist in `localStorage` — no backend, no accounts
+- **Tap for detail**: grocery items and nutrient chips are tappable — items show which tracked nutrients they contain, nutrient chips show which foods provide them and whether those foods are already in this week's list
+- **State**: the whole week (days, grocery list, checked items, toggles) auto-persists to `localStorage` on every change — no backend, no accounts
 
 ## Stack
 

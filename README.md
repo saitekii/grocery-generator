@@ -20,7 +20,7 @@ Each meal card has its own controls — a No-cook / Microwave / Cook switch plus
 
 ## Stack
 
-Plain HTML/CSS/JS. No build step, no dependencies, no bundler. Mobile-first.
+Plain HTML/CSS/JS. No build step, no dependencies, no bundler. Mobile-first, installable (manifest + service worker) — "Add to Home Screen" opens it standalone, and it keeps working offline after the first load.
 
 ## Running locally
 
@@ -38,3 +38,4 @@ then visit `http://localhost:8000`.
 - `style.css` — mobile-first styling
 - `data.js` — the food pool, meal templates, and nutrient tagging
 - `app.js` — generation logic, rendering, localStorage persistence
+- `manifest.json` / `sw.js` / `icons/` — installability (Add to Home Screen) and offline caching

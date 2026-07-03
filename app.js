@@ -1,6 +1,6 @@
 (function () {
-  const STORAGE_KEY = "groceryGenerator:v1";
-  const MEAL_COUNT = 6;
+  const STORAGE_KEY = "groceryGenerator:v2";
+  const DAY_COUNT = 7;
 
   const els = {
     generateBtn: document.getElementById("generateBtn"),
@@ -13,16 +13,18 @@
     groceryListSection: document.getElementById("groceryListSection"),
     groceryList: document.getElementById("groceryList"),
     mealsSection: document.getElementById("mealsSection"),
+    saveStatus: document.getElementById("saveStatus"),
     fixedBreakfastNote: document.getElementById("fixedBreakfastNote"),
-    mealsList: document.getElementById("mealsList"),
+    daysList: document.getElementById("daysList"),
     nutrientSection: document.getElementById("nutrientSection"),
     nutrientSummary: document.getElementById("nutrientSummary"),
     nutrientChips: document.getElementById("nutrientChips"),
     nutrientSourceDetail: document.getElementById("nutrientSourceDetail"),
   };
 
-  // { groceryIds: string[], checked: {id: bool}, mealIds: string[], toggles: {...} }
+  // { toggles: {...}, days: [{day, mealId}], groceryIds: string[], checked: {id: bool} }
   let state = null;
+  let saveFlashTimer = null;
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -106,6 +108,45 @@
     return result;
   }
 
+  // Picks the single best replacement for one day: whichever eligible
+  // candidate newly covers the most nutrients still missing across the
+  // *other* days' meals + fixed breakfast. Falls back to a random pick
+  // once nothing is missing (or nothing available can help).
+  function pickBestForGap(pool, otherMeals, excludeMealId) {
+    const otherMealIds = new Set(otherMeals.map((m) => m.id));
+    let candidates = pool.filter(
+      (m) => m.id !== excludeMealId && !otherMealIds.has(m.id)
+    );
+    // Pool too small to avoid a duplicate - fall back to anything but the
+    // exact meal being replaced, same graceful-degradation pattern as the
+    // toggle filters above.
+    if (candidates.length === 0) {
+      candidates = pool.filter((m) => m.id !== excludeMealId);
+    }
+    if (candidates.length === 0) return null;
+
+    const coveredWithoutSlot = computeCoverage(otherMeals);
+    const missing = NUTRIENT_WATCHLIST.filter((n) => !coveredWithoutSlot.has(n));
+
+    const shuffled = shuffle(candidates);
+    if (missing.length === 0) return shuffled[0];
+
+    let best = shuffled[0];
+    let bestScore = -1;
+    shuffled.forEach((m) => {
+      const score = Array.from(mealNutrients(m)).filter((n) => missing.includes(n)).length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = m;
+      }
+    });
+    return best;
+  }
+
+  function mealsFromDays(days) {
+    return days.map((d) => ALL_MEALS.find((m) => m.id === d.mealId)).filter(Boolean);
+  }
+
   function buildGroceryIds(meals) {
     const seen = new Set(FIXED_BREAKFAST.items);
     meals.forEach((meal) => meal.items.forEach((id) => seen.add(id)));
@@ -143,6 +184,14 @@
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function flashSaved() {
+    els.saveStatus.classList.remove("hidden");
+    clearTimeout(saveFlashTimer);
+    saveFlashTimer = setTimeout(() => {
+      els.saveStatus.classList.add("hidden");
+    }, 1500);
   }
 
   function loadState() {
@@ -230,16 +279,22 @@
     });
   }
 
-  function renderMeals() {
+  function renderDays() {
     els.fixedBreakfastNote.textContent = `${FIXED_BREAKFAST.label}: ${FIXED_BREAKFAST.items
       .map((id) => ITEMS[id].name)
       .join(" + ")}`;
 
-    els.mealsList.innerHTML = "";
-    state.mealIds.forEach((mealId) => {
-      const meal = ALL_MEALS.find((m) => m.id === mealId);
+    els.daysList.innerHTML = "";
+    state.days.forEach((d) => {
+      const meal = ALL_MEALS.find((m) => m.id === d.mealId);
+      if (!meal) return;
+
       const li = document.createElement("li");
       li.className = "meal-card";
+
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.textContent = `Day ${d.day}`;
 
       const badge = document.createElement("span");
       badge.className = `badge badge-${meal.type}`;
@@ -253,6 +308,7 @@
       ingredients.className = "meal-ingredients";
       ingredients.textContent = mealIngredients(meal);
 
+      li.appendChild(header);
       li.appendChild(badge);
       li.appendChild(name);
       li.appendChild(ingredients);
@@ -264,7 +320,14 @@
         li.appendChild(seasoning);
       }
 
-      els.mealsList.appendChild(li);
+      const regenerateBtn = document.createElement("button");
+      regenerateBtn.type = "button";
+      regenerateBtn.className = "regenerate-btn";
+      regenerateBtn.textContent = "Regenerate this day";
+      regenerateBtn.addEventListener("click", () => regenerateDay(d.day));
+      li.appendChild(regenerateBtn);
+
+      els.daysList.appendChild(li);
     });
   }
 
@@ -303,10 +366,7 @@
   }
 
   function renderNutrientCoverage() {
-    const meals = state.mealIds
-      .map((id) => ALL_MEALS.find((m) => m.id === id))
-      .filter(Boolean);
-    const covered = computeCoverage(meals);
+    const covered = computeCoverage(mealsFromDays(state.days));
 
     els.nutrientSummary.textContent = `${covered.size} / ${NUTRIENT_WATCHLIST.length} covered this week`;
 
@@ -351,7 +411,7 @@
     els.nutrientSection.classList.toggle("hidden", !hasList);
     if (hasList) {
       renderGroceryList();
-      renderMeals();
+      renderDays();
       renderNutrientCoverage();
     }
   }
@@ -359,16 +419,46 @@
   function generateWeek() {
     const toggles = readToggles();
     const pool = filterMeals(toggles);
-    const meals = improveCoverage(pickMeals(pool, MEAL_COUNT), pool);
+    const meals = improveCoverage(pickMeals(pool, DAY_COUNT), pool);
+    const days = meals.map((m, i) => ({ day: i + 1, mealId: m.id }));
     const groceryIds = buildGroceryIds(meals);
 
     state = {
       toggles,
-      mealIds: meals.map((m) => m.id),
+      days,
       groceryIds,
       checked: {},
     };
     saveState();
+    flashSaved();
+    renderOutput();
+  }
+
+  // Swaps just one day's meal, biased toward whatever nutrients the rest
+  // of the week is currently missing. Keeps checked-off progress on any
+  // grocery item that's still needed; drops items no longer needed.
+  function regenerateDay(dayNumber) {
+    const toggles = readToggles();
+    const pool = filterMeals(toggles);
+    const currentDay = state.days.find((d) => d.day === dayNumber);
+    if (!currentDay) return;
+
+    const otherMeals = mealsFromDays(state.days.filter((d) => d.day !== dayNumber));
+    const replacement = pickBestForGap(pool, otherMeals, currentDay.mealId);
+    if (!replacement) return;
+
+    currentDay.mealId = replacement.id;
+    state.toggles = toggles;
+
+    const newGroceryIds = buildGroceryIds(mealsFromDays(state.days));
+    const newGroceryIdSet = new Set(newGroceryIds);
+    Object.keys(state.checked).forEach((id) => {
+      if (!newGroceryIdSet.has(id)) delete state.checked[id];
+    });
+    state.groceryIds = newGroceryIds;
+
+    saveState();
+    flashSaved();
     renderOutput();
   }
 
@@ -385,7 +475,7 @@
     if (saved && saved.groceryIds && saved.groceryIds.length > 0) {
       state = saved;
     } else {
-      state = { toggles, mealIds: [], groceryIds: [], checked: {} };
+      state = { toggles, days: [], groceryIds: [], checked: {} };
     }
     renderOutput();
 

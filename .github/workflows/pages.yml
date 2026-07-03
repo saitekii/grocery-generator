@@ -27,7 +27,8 @@ jobs:
       - name: Prepare site files
         run: |
           mkdir -p dist
-          cp index.html style.css data.js app.js dist/
+          cp index.html style.css data.js app.js manifest.json sw.js dist/
+          cp -r icons dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

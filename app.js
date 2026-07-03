@@ -1,30 +1,55 @@
 (function () {
-  const STORAGE_KEY = "groceryGenerator:v3";
+  const STORAGE_KEY = "groceryGenerator:v4";
   const DAY_COUNT = 7;
   const MEALS_PER_DAY = 2;
   const SLOT_LABELS = ["Lunch", "Dinner"];
+  const STYLE_OPTIONS = [
+    { value: "no-cook", label: "No-cook" },
+    { value: "microwave", label: "Micro" },
+    { value: "quick-cook", label: "Cook" },
+  ];
 
   const els = {
-    generateBtn: document.getElementById("generateBtn"),
-    ultraLazy: document.getElementById("ultraLazy"),
-    highProtein: document.getElementById("highProtein"),
-    extraCheap: document.getElementById("extraCheap"),
-    effort: document.getElementById("effort"),
-    effortValue: document.getElementById("effortValue"),
-    emptyState: document.getElementById("emptyState"),
-    groceryListSection: document.getElementById("groceryListSection"),
-    groceryList: document.getElementById("groceryList"),
-    mealsSection: document.getElementById("mealsSection"),
     saveStatus: document.getElementById("saveStatus"),
+
+    tabButtons: document.querySelectorAll(".tab-btn"),
+    planPanel: document.getElementById("planPanel"),
+    groceryPanel: document.getElementById("groceryPanel"),
+    savedPanel: document.getElementById("savedPanel"),
+
+    prevWeekBtn: document.getElementById("prevWeekBtn"),
+    nextWeekBtn: document.getElementById("nextWeekBtn"),
+    weekRangeLabel: document.getElementById("weekRangeLabel"),
+    generateBtn: document.getElementById("generateBtn"),
+    emptyState: document.getElementById("emptyState"),
+    mealsSection: document.getElementById("mealsSection"),
     fixedBreakfastNote: document.getElementById("fixedBreakfastNote"),
     daysList: document.getElementById("daysList"),
     nutrientSection: document.getElementById("nutrientSection"),
     nutrientSummary: document.getElementById("nutrientSummary"),
     nutrientChips: document.getElementById("nutrientChips"),
     nutrientSourceDetail: document.getElementById("nutrientSourceDetail"),
+
+    groceryWeekLabel: document.getElementById("groceryWeekLabel"),
+    groceryListSection: document.getElementById("groceryListSection"),
+    groceryList: document.getElementById("groceryList"),
+    groceryEmptyState: document.getElementById("groceryEmptyState"),
+
+    savedWeeksCount: document.getElementById("savedWeeksCount"),
+    weeksList: document.getElementById("weeksList"),
+    savedEmptyState: document.getElementById("savedEmptyState"),
   };
 
-  // { toggles: {...}, days: [{date: "yyyy-mm-dd", mealIds: [id, id]}], groceryIds: string[], checked: {id: bool} }
+  // {
+  //   activeWeekStart: "yyyy-mm-dd" (a Monday),
+  //   weeks: {
+  //     "yyyy-mm-dd": {
+  //       days: [{ date, meals: [{ mealId, prefs: {style, highProtein, cheap} }, ...] }, ...],
+  //       groceryIds: string[],
+  //       checked: {id: bool}
+  //     }
+  //   }
+  // }
   let state = null;
   let saveFlashTimer = null;
 
@@ -37,12 +62,9 @@
     return a;
   }
 
-  // Monday of the calendar week containing today (ISO-style week start).
-  function getMondayOfCurrentWeek() {
-    const now = new Date();
-    const day = now.getDay(); // 0 = Sunday ... 6 = Saturday
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+  function parseISO(isoDateStr) {
+    const [y, m, d] = isoDateStr.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
 
   function formatDateISO(date) {
@@ -52,41 +74,59 @@
     return `${y}-${m}-${d}`;
   }
 
+  function addDaysISO(isoDateStr, days) {
+    const base = parseISO(isoDateStr);
+    return formatDateISO(new Date(base.getFullYear(), base.getMonth(), base.getDate() + days));
+  }
+
+  // Monday of the calendar week containing today (ISO-style week start).
+  function getMondayOfCurrentWeek() {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday ... 6 = Saturday
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+  }
+
   function formatDateDisplay(isoDateStr) {
-    const [y, m, d] = isoDateStr.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString(undefined, {
+    return parseISO(isoDateStr).toLocaleDateString(undefined, {
       weekday: "long",
       month: "short",
       day: "numeric",
     });
   }
 
-  function getAllowedTypes(effort, ultraLazy) {
-    if (ultraLazy) return ["no-cook"];
-    if (effort <= 33) return ["no-cook"];
-    if (effort <= 66) return ["no-cook", "microwave"];
-    return ["no-cook", "microwave", "quick-cook"];
+  function formatWeekRange(weekStart) {
+    const start = parseISO(weekStart);
+    const end = parseISO(addDaysISO(weekStart, 6));
+    const startLabel = start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const endLabel = end.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return `${startLabel} – ${endLabel}`;
+  }
+
+  function defaultPrefs() {
+    return { style: null, highProtein: false, cheap: false };
   }
 
   function isCheapMeal(meal) {
     return meal.items.every((id) => ITEMS[id].cheap);
   }
 
-  function filterMeals(toggles) {
-    const allowedTypes = getAllowedTypes(toggles.effort, toggles.ultraLazy);
-    let pool = ALL_MEALS.filter((m) => allowedTypes.includes(m.type));
-
-    if (toggles.highProtein) {
+  // Per-meal-slot pool: style is an exclusive filter (or unconstrained if
+  // null), highProtein/cheap narrow further with the same
+  // fall-back-if-it-would-empty-the-pool pattern.
+  function filterMealsForSlot(prefs) {
+    let pool = ALL_MEALS;
+    if (prefs.style) {
+      pool = pool.filter((m) => m.type === prefs.style);
+    }
+    if (prefs.highProtein) {
       const narrowed = pool.filter((m) => m.highProtein);
       if (narrowed.length > 0) pool = narrowed;
     }
-
-    if (toggles.extraCheap) {
+    if (prefs.cheap) {
       const narrowed = pool.filter(isCheapMeal);
       if (narrowed.length > 0) pool = narrowed;
     }
-
     return pool;
   }
 
@@ -118,9 +158,9 @@
   }
 
   // Greedily swaps in eligible meals that cover currently-missing
-  // watchlist nutrients, so a week isn't just random - it also nudges
-  // toward broader micronutrient coverage where the filtered pool allows it.
-  // Nutrients already supplied by the fixed daily breakfast don't need a swap.
+  // watchlist nutrients, so a fresh week isn't just random - it also nudges
+  // toward broader micronutrient coverage. Used for the bulk "Generate Week"
+  // fill, which always draws from the full unconstrained pool.
   function improveCoverage(meals, pool) {
     const result = meals.slice();
     NUTRIENT_WATCHLIST.forEach((nutrient) => {
@@ -136,11 +176,10 @@
   }
 
   // Picks the single best replacement for one meal slot: whichever eligible
-  // candidate newly covers the most nutrients still missing across every
-  // *other* scheduled meal + fixed breakfast, and isn't already used
-  // elsewhere in the week if that can be avoided. Falls back to a random
-  // pick once nothing is missing, and allows a duplicate only if the
-  // filtered pool is too small to avoid one.
+  // candidate (from that slot's own preference-filtered pool) newly covers
+  // the most nutrients still missing across every *other* scheduled meal in
+  // the week + fixed breakfast, and isn't already used elsewhere in the
+  // week if that can be avoided.
   function pickBestForGap(pool, otherMeals, excludeMealId) {
     const otherMealIds = new Set(otherMeals.map((m) => m.id));
     let candidates = pool.filter(
@@ -172,8 +211,8 @@
   function mealsFromDays(days) {
     const meals = [];
     days.forEach((d) => {
-      d.mealIds.forEach((id) => {
-        const meal = ALL_MEALS.find((m) => m.id === id);
+      d.meals.forEach((slot) => {
+        const meal = ALL_MEALS.find((m) => m.id === slot.mealId);
         if (meal) meals.push(meal);
       });
     });
@@ -197,22 +236,8 @@
       .join(" + ");
   }
 
-  function readToggles() {
-    return {
-      ultraLazy: els.ultraLazy.checked,
-      highProtein: els.highProtein.checked,
-      extraCheap: els.extraCheap.checked,
-      effort: Number(els.effort.value),
-    };
-  }
-
-  function applyTogglesToControls(toggles) {
-    els.ultraLazy.checked = toggles.ultraLazy;
-    els.highProtein.checked = toggles.highProtein;
-    els.extraCheap.checked = toggles.extraCheap;
-    els.effort.value = toggles.effort;
-    els.effortValue.textContent = toggles.effort;
-    els.effort.disabled = toggles.ultraLazy;
+  function getActiveWeek() {
+    return state.weeks[state.activeWeekStart] || null;
   }
 
   function saveState() {
@@ -236,12 +261,314 @@
     }
   }
 
-  function renderGroceryList() {
+  function pruneCheckedAndSave(week) {
+    const newGroceryIds = buildGroceryIds(mealsFromDays(week.days));
+    const newGroceryIdSet = new Set(newGroceryIds);
+    Object.keys(week.checked).forEach((id) => {
+      if (!newGroceryIdSet.has(id)) delete week.checked[id];
+    });
+    week.groceryIds = newGroceryIds;
+    saveState();
+    flashSaved();
+  }
+
+  function generateWeek() {
+    const totalSlots = DAY_COUNT * MEALS_PER_DAY;
+    const meals = improveCoverage(pickMeals(ALL_MEALS, totalSlots), ALL_MEALS);
+
+    const weekStart = state.activeWeekStart;
+    const days = [];
+    for (let i = 0; i < DAY_COUNT; i++) {
+      const date = addDaysISO(weekStart, i);
+      const slice = meals.slice(i * MEALS_PER_DAY, i * MEALS_PER_DAY + MEALS_PER_DAY);
+      days.push({
+        date,
+        meals: slice.map((m) => ({ mealId: m.id, prefs: defaultPrefs() })),
+      });
+    }
+
+    state.weeks[weekStart] = {
+      days,
+      groceryIds: buildGroceryIds(meals),
+      checked: {},
+    };
+    saveState();
+    flashSaved();
+    renderAll();
+  }
+
+  // Swaps just one meal slot using that slot's own preference chips (cook
+  // style, high protein, cheap), biased toward whatever nutrients the rest
+  // of the week is currently missing, and avoiding a meal already used
+  // elsewhere in the week where the filtered pool allows it. Preserves
+  // checked-off grocery progress for anything still needed.
+  function regenerateMeal(date, slotIndex) {
+    const week = getActiveWeek();
+    if (!week) return;
+    const dayEntry = week.days.find((d) => d.date === date);
+    if (!dayEntry) return;
+    const slot = dayEntry.meals[slotIndex];
+    if (!slot) return;
+
+    const pool = filterMealsForSlot(slot.prefs);
+    const otherMeals = [];
+    week.days.forEach((d) => {
+      d.meals.forEach((s, idx) => {
+        if (d.date === date && idx === slotIndex) return;
+        const meal = ALL_MEALS.find((m) => m.id === s.mealId);
+        if (meal) otherMeals.push(meal);
+      });
+    });
+
+    const replacement = pickBestForGap(pool, otherMeals, slot.mealId);
+    if (!replacement) return;
+
+    slot.mealId = replacement.id;
+    pruneCheckedAndSave(week);
+    renderAll();
+  }
+
+  // Sets a slot's cook-style filter for its *next* regenerate; tapping the
+  // already-active option clears it back to unconstrained. Doesn't change
+  // the currently-assigned meal by itself.
+  function toggleSlotStyle(date, slotIndex, styleValue) {
+    const week = getActiveWeek();
+    if (!week) return;
+    const dayEntry = week.days.find((d) => d.date === date);
+    const slot = dayEntry && dayEntry.meals[slotIndex];
+    if (!slot) return;
+    slot.prefs.style = slot.prefs.style === styleValue ? null : styleValue;
+    saveState();
+    renderAll();
+  }
+
+  function toggleSlotFlag(date, slotIndex, key) {
+    const week = getActiveWeek();
+    if (!week) return;
+    const dayEntry = week.days.find((d) => d.date === date);
+    const slot = dayEntry && dayEntry.meals[slotIndex];
+    if (!slot) return;
+    slot.prefs[key] = !slot.prefs[key];
+    saveState();
+    renderAll();
+  }
+
+  function navigateWeek(delta) {
+    state.activeWeekStart = addDaysISO(state.activeWeekStart, delta * 7);
+    saveState();
+    renderAll();
+  }
+
+  function switchTab(tabId) {
+    els.tabButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === tabId);
+    });
+    [els.planPanel, els.groceryPanel, els.savedPanel].forEach((panel) => {
+      panel.classList.toggle("hidden", panel.id !== tabId);
+    });
+  }
+
+  function buildMealCard(meal, slot, slotIndex, date) {
+    const card = document.createElement("div");
+    card.className = "meal-card";
+
+    const slotRow = document.createElement("div");
+    slotRow.className = "slot-row";
+    const slotLabelEl = document.createElement("span");
+    slotLabelEl.className = "meal-slot-label";
+    slotLabelEl.textContent = SLOT_LABELS[slotIndex] || `Meal ${slotIndex + 1}`;
+    const badge = document.createElement("span");
+    badge.className = `badge badge-${meal.type}`;
+    badge.textContent = `${TYPE_LABELS[meal.type]} · ${meal.minMinutes}-${meal.maxMinutes} min`;
+    slotRow.appendChild(slotLabelEl);
+    slotRow.appendChild(badge);
+    card.appendChild(slotRow);
+
+    const name = document.createElement("div");
+    name.className = "meal-name";
+    name.textContent = meal.name;
+    card.appendChild(name);
+
+    const ingredients = document.createElement("div");
+    ingredients.className = "meal-ingredients";
+    ingredients.textContent = mealIngredients(meal);
+    card.appendChild(ingredients);
+
+    if (meal.seasoning && meal.seasoning.length > 0) {
+      const seasoning = document.createElement("div");
+      seasoning.className = "meal-seasoning";
+      seasoning.textContent = `Season with: ${meal.seasoning.join(", ")}`;
+      card.appendChild(seasoning);
+    }
+
+    const controls = document.createElement("div");
+    controls.className = "meal-controls";
+
+    const styleToggle = document.createElement("div");
+    styleToggle.className = "style-toggle";
+    STYLE_OPTIONS.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = opt.label;
+      btn.className = slot.prefs.style === opt.value ? "active" : "";
+      btn.addEventListener("click", () => toggleSlotStyle(date, slotIndex, opt.value));
+      styleToggle.appendChild(btn);
+    });
+    controls.appendChild(styleToggle);
+
+    const proteinChip = document.createElement("button");
+    proteinChip.type = "button";
+    proteinChip.className = `pref-chip${slot.prefs.highProtein ? " active" : ""}`;
+    proteinChip.textContent = "High protein";
+    proteinChip.addEventListener("click", () => toggleSlotFlag(date, slotIndex, "highProtein"));
+    controls.appendChild(proteinChip);
+
+    const cheapChip = document.createElement("button");
+    cheapChip.type = "button";
+    cheapChip.className = `pref-chip${slot.prefs.cheap ? " active" : ""}`;
+    cheapChip.textContent = "Cheap";
+    cheapChip.addEventListener("click", () => toggleSlotFlag(date, slotIndex, "cheap"));
+    controls.appendChild(cheapChip);
+
+    card.appendChild(controls);
+
+    const regenerateBtn = document.createElement("button");
+    regenerateBtn.type = "button";
+    regenerateBtn.className = "regenerate-btn";
+    regenerateBtn.textContent = "Regenerate";
+    regenerateBtn.addEventListener("click", () => regenerateMeal(date, slotIndex));
+    card.appendChild(regenerateBtn);
+
+    return card;
+  }
+
+  function nutrientSources(key) {
+    return Object.values(ITEMS).filter((item) =>
+      (item.nutrients || []).includes(key)
+    );
+  }
+
+  function showNutrientSources(key) {
+    const week = getActiveWeek();
+    const inListIds = new Set(week ? week.groceryIds : []);
+
+    els.nutrientSourceDetail.innerHTML = "";
+
+    const label = document.createElement("div");
+    label.className = "nutrient-source-label";
+    label.textContent = `Foods with ${NUTRIENTS[key]}:`;
+    els.nutrientSourceDetail.appendChild(label);
+
+    const list = document.createElement("div");
+    list.className = "nutrient-source-list";
+    nutrientSources(key).forEach((item) => {
+      const tag = document.createElement("span");
+      tag.className = `source-tag${inListIds.has(item.id) ? " in-list" : ""}`;
+      tag.textContent = item.name;
+      list.appendChild(tag);
+    });
+    els.nutrientSourceDetail.appendChild(list);
+
+    const hint = document.createElement("div");
+    hint.className = "nutrient-source-hint";
+    hint.textContent = "Highlighted = already in this week's list";
+    els.nutrientSourceDetail.appendChild(hint);
+
+    els.nutrientSourceDetail.classList.remove("hidden");
+  }
+
+  function renderNutrientCoverage(week) {
+    const covered = computeCoverage(mealsFromDays(week.days));
+
+    els.nutrientSummary.textContent = `${covered.size} / ${NUTRIENT_WATCHLIST.length} covered this week`;
+
+    els.nutrientChips.innerHTML = "";
+    els.nutrientSourceDetail.classList.add("hidden");
+    els.nutrientSourceDetail.innerHTML = "";
+
+    NUTRIENT_WATCHLIST.forEach((key) => {
+      const isCovered = covered.has(key);
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = `chip ${isCovered ? "chip-covered" : "chip-missing"}`;
+      chip.textContent = `${isCovered ? "✓" : "–"} ${NUTRIENTS[key]}`;
+      chip.setAttribute("aria-expanded", "false");
+
+      chip.addEventListener("click", () => {
+        const wasActive = chip.classList.contains("chip-active");
+        els.nutrientChips.querySelectorAll(".chip-active").forEach((c) => {
+          c.classList.remove("chip-active");
+          c.setAttribute("aria-expanded", "false");
+        });
+
+        if (wasActive) {
+          els.nutrientSourceDetail.classList.add("hidden");
+          return;
+        }
+
+        chip.classList.add("chip-active");
+        chip.setAttribute("aria-expanded", "true");
+        showNutrientSources(key);
+      });
+
+      els.nutrientChips.appendChild(chip);
+    });
+  }
+
+  function renderPlan() {
+    els.weekRangeLabel.textContent = formatWeekRange(state.activeWeekStart);
+    const week = getActiveWeek();
+    const hasDays = !!(week && week.days.length > 0);
+
+    els.emptyState.classList.toggle("hidden", hasDays);
+    els.mealsSection.classList.toggle("hidden", !hasDays);
+    els.nutrientSection.classList.toggle("hidden", !hasDays);
+
+    if (!hasDays) return;
+
+    els.fixedBreakfastNote.textContent = `${FIXED_BREAKFAST.label}: ${FIXED_BREAKFAST.items
+      .map((id) => ITEMS[id].name)
+      .join(" + ")}`;
+
+    els.daysList.innerHTML = "";
+    week.days.forEach((d) => {
+      const li = document.createElement("li");
+      li.className = "day-group";
+
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.textContent = formatDateDisplay(d.date);
+      li.appendChild(header);
+
+      const dayMeals = document.createElement("div");
+      dayMeals.className = "day-meals";
+
+      d.meals.forEach((slot, slotIndex) => {
+        const meal = ALL_MEALS.find((m) => m.id === slot.mealId);
+        if (!meal) return;
+        dayMeals.appendChild(buildMealCard(meal, slot, slotIndex, d.date));
+      });
+
+      li.appendChild(dayMeals);
+      els.daysList.appendChild(li);
+    });
+
+    renderNutrientCoverage(week);
+  }
+
+  function renderGroceryPanel() {
+    els.groceryWeekLabel.textContent = `Week of ${formatWeekRange(state.activeWeekStart)}`;
+    const week = getActiveWeek();
+    const hasList = !!(week && week.groceryIds.length > 0);
+
+    els.groceryListSection.classList.toggle("hidden", !hasList);
+    els.groceryEmptyState.classList.toggle("hidden", hasList);
+
+    if (!hasList) return;
+
     els.groceryList.innerHTML = "";
     CATEGORIES.forEach((cat) => {
-      const idsInCategory = state.groceryIds.filter(
-        (id) => ITEMS[id].category === cat.key
-      );
+      const idsInCategory = week.groceryIds.filter((id) => ITEMS[id].category === cat.key);
       if (idsInCategory.length === 0) return;
 
       const details = document.createElement("details");
@@ -263,9 +590,9 @@
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.checked = !!state.checked[id];
+        checkbox.checked = !!week.checked[id];
         checkbox.addEventListener("change", () => {
-          state.checked[id] = checkbox.checked;
+          week.checked[id] = checkbox.checked;
           span.classList.toggle("checked", checkbox.checked);
           saveState();
         });
@@ -312,250 +639,88 @@
     });
   }
 
-  function buildMealCard(meal, slotIndex, date) {
-    const card = document.createElement("div");
-    card.className = "meal-card";
+  function renderSavedWeeksPanel() {
+    const weekStarts = Object.keys(state.weeks).sort();
+    els.savedWeeksCount.textContent =
+      weekStarts.length === 0
+        ? ""
+        : weekStarts.length === 1
+        ? "1 week saved"
+        : `${weekStarts.length} weeks saved`;
 
-    const slotLabel = document.createElement("div");
-    slotLabel.className = "meal-slot-label";
-    slotLabel.textContent = SLOT_LABELS[slotIndex] || `Meal ${slotIndex + 1}`;
+    els.weeksList.innerHTML = "";
+    els.savedEmptyState.classList.toggle("hidden", weekStarts.length > 0);
 
-    const badge = document.createElement("span");
-    badge.className = `badge badge-${meal.type}`;
-    badge.textContent = `${TYPE_LABELS[meal.type]} · ${meal.minMinutes}-${meal.maxMinutes} min`;
+    weekStarts.forEach((ws) => {
+      const week = state.weeks[ws];
+      const meals = mealsFromDays(week.days);
 
-    const name = document.createElement("div");
-    name.className = "meal-name";
-    name.textContent = meal.name;
-
-    const ingredients = document.createElement("div");
-    ingredients.className = "meal-ingredients";
-    ingredients.textContent = mealIngredients(meal);
-
-    card.appendChild(slotLabel);
-    card.appendChild(badge);
-    card.appendChild(name);
-    card.appendChild(ingredients);
-
-    if (meal.seasoning && meal.seasoning.length > 0) {
-      const seasoning = document.createElement("div");
-      seasoning.className = "meal-seasoning";
-      seasoning.textContent = `Season with: ${meal.seasoning.join(", ")}`;
-      card.appendChild(seasoning);
-    }
-
-    const regenerateBtn = document.createElement("button");
-    regenerateBtn.type = "button";
-    regenerateBtn.className = "regenerate-btn";
-    regenerateBtn.textContent = "Regenerate";
-    regenerateBtn.addEventListener("click", () => regenerateMeal(date, slotIndex));
-    card.appendChild(regenerateBtn);
-
-    return card;
-  }
-
-  function renderDays() {
-    els.fixedBreakfastNote.textContent = `${FIXED_BREAKFAST.label}: ${FIXED_BREAKFAST.items
-      .map((id) => ITEMS[id].name)
-      .join(" + ")}`;
-
-    els.daysList.innerHTML = "";
-    state.days.forEach((d) => {
       const li = document.createElement("li");
-      li.className = "day-group";
+      li.className = `week-entry${ws === state.activeWeekStart ? " active" : ""}`;
+      li.tabIndex = 0;
+      li.setAttribute("role", "button");
 
-      const header = document.createElement("div");
-      header.className = "day-header";
-      header.textContent = formatDateDisplay(d.date);
-      li.appendChild(header);
+      const info = document.createElement("div");
+      const range = document.createElement("div");
+      range.className = "week-entry-range";
+      range.textContent = formatWeekRange(ws);
+      const meta = document.createElement("div");
+      meta.className = "week-entry-meta";
+      if (meals.length > 0) {
+        const covered = computeCoverage(meals);
+        meta.textContent = `${meals.length} meals · ${covered.size}/${NUTRIENT_WATCHLIST.length} covered`;
+      } else {
+        meta.textContent = "Empty";
+      }
+      info.appendChild(range);
+      info.appendChild(meta);
 
-      const dayMeals = document.createElement("div");
-      dayMeals.className = "day-meals";
+      const pill = document.createElement("span");
+      pill.className = "week-entry-pill";
+      pill.textContent = ws === state.activeWeekStart ? "Viewing" : "Open";
 
-      d.mealIds.forEach((mealId, slotIndex) => {
-        const meal = ALL_MEALS.find((m) => m.id === mealId);
-        if (!meal) return;
-        dayMeals.appendChild(buildMealCard(meal, slotIndex, d.date));
-      });
+      li.appendChild(info);
+      li.appendChild(pill);
 
-      li.appendChild(dayMeals);
-      els.daysList.appendChild(li);
-    });
-  }
-
-  function nutrientSources(key) {
-    return Object.values(ITEMS).filter((item) =>
-      (item.nutrients || []).includes(key)
-    );
-  }
-
-  function showNutrientSources(key) {
-    const inListIds = new Set(state.groceryIds);
-
-    els.nutrientSourceDetail.innerHTML = "";
-
-    const label = document.createElement("div");
-    label.className = "nutrient-source-label";
-    label.textContent = `Foods with ${NUTRIENTS[key]}:`;
-    els.nutrientSourceDetail.appendChild(label);
-
-    const list = document.createElement("div");
-    list.className = "nutrient-source-list";
-    nutrientSources(key).forEach((item) => {
-      const tag = document.createElement("span");
-      tag.className = `source-tag${inListIds.has(item.id) ? " in-list" : ""}`;
-      tag.textContent = item.name;
-      list.appendChild(tag);
-    });
-    els.nutrientSourceDetail.appendChild(list);
-
-    const hint = document.createElement("div");
-    hint.className = "nutrient-source-hint";
-    hint.textContent = "Highlighted = already in this week's list";
-    els.nutrientSourceDetail.appendChild(hint);
-
-    els.nutrientSourceDetail.classList.remove("hidden");
-  }
-
-  function renderNutrientCoverage() {
-    const covered = computeCoverage(mealsFromDays(state.days));
-
-    els.nutrientSummary.textContent = `${covered.size} / ${NUTRIENT_WATCHLIST.length} covered this week`;
-
-    els.nutrientChips.innerHTML = "";
-    els.nutrientSourceDetail.classList.add("hidden");
-    els.nutrientSourceDetail.innerHTML = "";
-
-    NUTRIENT_WATCHLIST.forEach((key) => {
-      const isCovered = covered.has(key);
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = `chip ${isCovered ? "chip-covered" : "chip-missing"}`;
-      chip.textContent = `${isCovered ? "✓" : "–"} ${NUTRIENTS[key]}`;
-      chip.setAttribute("aria-expanded", "false");
-
-      chip.addEventListener("click", () => {
-        const wasActive = chip.classList.contains("chip-active");
-        els.nutrientChips.querySelectorAll(".chip-active").forEach((c) => {
-          c.classList.remove("chip-active");
-          c.setAttribute("aria-expanded", "false");
-        });
-
-        if (wasActive) {
-          els.nutrientSourceDetail.classList.add("hidden");
-          return;
+      const openWeek = () => {
+        state.activeWeekStart = ws;
+        saveState();
+        switchTab("planPanel");
+        renderAll();
+      };
+      li.addEventListener("click", openWeek);
+      li.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openWeek();
         }
-
-        chip.classList.add("chip-active");
-        chip.setAttribute("aria-expanded", "true");
-        showNutrientSources(key);
       });
 
-      els.nutrientChips.appendChild(chip);
+      els.weeksList.appendChild(li);
     });
   }
 
-  function renderOutput() {
-    const hasList = state && state.groceryIds.length > 0;
-    els.emptyState.classList.toggle("hidden", hasList);
-    els.groceryListSection.classList.toggle("hidden", !hasList);
-    els.mealsSection.classList.toggle("hidden", !hasList);
-    els.nutrientSection.classList.toggle("hidden", !hasList);
-    if (hasList) {
-      renderGroceryList();
-      renderDays();
-      renderNutrientCoverage();
-    }
-  }
-
-  function pruneCheckedAndSave() {
-    const newGroceryIds = buildGroceryIds(mealsFromDays(state.days));
-    const newGroceryIdSet = new Set(newGroceryIds);
-    Object.keys(state.checked).forEach((id) => {
-      if (!newGroceryIdSet.has(id)) delete state.checked[id];
-    });
-    state.groceryIds = newGroceryIds;
-    saveState();
-    flashSaved();
-  }
-
-  function generateWeek() {
-    const toggles = readToggles();
-    const pool = filterMeals(toggles);
-    const totalSlots = DAY_COUNT * MEALS_PER_DAY;
-    const meals = improveCoverage(pickMeals(pool, totalSlots), pool);
-
-    const monday = getMondayOfCurrentWeek();
-    const days = [];
-    for (let i = 0; i < DAY_COUNT; i++) {
-      const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
-      const slice = meals.slice(i * MEALS_PER_DAY, i * MEALS_PER_DAY + MEALS_PER_DAY);
-      days.push({ date: formatDateISO(date), mealIds: slice.map((m) => m.id) });
-    }
-
-    state = {
-      toggles,
-      days,
-      groceryIds: buildGroceryIds(meals),
-      checked: {},
-    };
-    saveState();
-    flashSaved();
-    renderOutput();
-  }
-
-  // Swaps just one meal slot (one day, lunch or dinner), biased toward
-  // whatever nutrients the rest of the week is currently missing. Keeps
-  // checked-off progress on any grocery item that's still needed; drops
-  // items no longer needed.
-  function regenerateMeal(date, slotIndex) {
-    const toggles = readToggles();
-    const pool = filterMeals(toggles);
-    const dayEntry = state.days.find((d) => d.date === date);
-    if (!dayEntry) return;
-
-    const currentMealId = dayEntry.mealIds[slotIndex];
-    const otherMeals = [];
-    state.days.forEach((d) => {
-      d.mealIds.forEach((id, idx) => {
-        if (d.date === date && idx === slotIndex) return;
-        const meal = ALL_MEALS.find((m) => m.id === id);
-        if (meal) otherMeals.push(meal);
-      });
-    });
-
-    const replacement = pickBestForGap(pool, otherMeals, currentMealId);
-    if (!replacement) return;
-
-    dayEntry.mealIds[slotIndex] = replacement.id;
-    state.toggles = toggles;
-    pruneCheckedAndSave();
-    renderOutput();
+  function renderAll() {
+    renderPlan();
+    renderGroceryPanel();
+    renderSavedWeeksPanel();
   }
 
   function init() {
     const saved = loadState();
-    const toggles = (saved && saved.toggles) || {
-      ultraLazy: false,
-      highProtein: false,
-      extraCheap: false,
-      effort: 50,
-    };
-    applyTogglesToControls(toggles);
-
-    if (saved && saved.groceryIds && saved.groceryIds.length > 0) {
+    if (saved && saved.weeks && saved.activeWeekStart) {
       state = saved;
     } else {
-      state = { toggles, days: [], groceryIds: [], checked: {} };
+      state = { activeWeekStart: formatDateISO(getMondayOfCurrentWeek()), weeks: {} };
     }
-    renderOutput();
+
+    renderAll();
 
     els.generateBtn.addEventListener("click", generateWeek);
-    els.ultraLazy.addEventListener("change", () => {
-      els.effort.disabled = els.ultraLazy.checked;
-    });
-    els.effort.addEventListener("input", () => {
-      els.effortValue.textContent = els.effort.value;
+    els.prevWeekBtn.addEventListener("click", () => navigateWeek(-1));
+    els.nextWeekBtn.addEventListener("click", () => navigateWeek(1));
+    els.tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
     });
   }
 

@@ -10,47 +10,22 @@
 <body>
   <header class="app-header">
     <h1>Quick Grocery Generator</h1>
+    <span id="saveStatus" class="save-status hidden">✓ Saved</span>
   </header>
 
   <main>
-    <section class="controls" aria-label="Controls">
+    <section id="planPanel" class="tab-panel">
+      <div class="week-nav">
+        <button id="prevWeekBtn" type="button" class="week-nav-btn" aria-label="Previous week">‹</button>
+        <span id="weekRangeLabel" class="week-range"></span>
+        <button id="nextWeekBtn" type="button" class="week-nav-btn" aria-label="Next week">›</button>
+      </div>
+
       <button id="generateBtn" class="btn-primary" type="button">Generate Week</button>
 
-      <div class="toggle-row">
-        <label class="toggle">
-          <input type="checkbox" id="ultraLazy" />
-          <span>Ultra lazy mode</span>
-        </label>
-        <label class="toggle">
-          <input type="checkbox" id="highProtein" />
-          <span>High protein mode</span>
-        </label>
-        <label class="toggle">
-          <input type="checkbox" id="extraCheap" />
-          <span>Extra cheap mode</span>
-        </label>
-      </div>
-
-      <div class="slider-row">
-        <label for="effort">Cooking effort: <span id="effortValue">50</span></label>
-        <input type="range" id="effort" min="0" max="100" value="50" />
-      </div>
-    </section>
-
-    <section class="output">
-      <p id="emptyState" class="empty-state">Tap "Generate Week" to get your grocery list and meals.</p>
-
-      <section id="groceryListSection" class="grocery-section hidden">
-        <h2>Grocery List</h2>
-        <p class="fixed-note">Includes your daily breakfast (oats, peanut butter, banana, kefir).</p>
-        <div id="groceryList"></div>
-      </section>
+      <p id="emptyState" class="empty-state">This week is empty. Tap "Generate Week" to fill it.</p>
 
       <section id="mealsSection" class="meals-section hidden">
-        <div class="meals-header">
-          <h2>Meal Plan</h2>
-          <span id="saveStatus" class="save-status hidden">✓ Saved</span>
-        </div>
         <p id="fixedBreakfastNote" class="fixed-breakfast-note"></p>
         <ol id="daysList" class="meals-list"></ol>
       </section>
@@ -62,7 +37,34 @@
         <div id="nutrientSourceDetail" class="nutrient-source-detail hidden"></div>
       </section>
     </section>
+
+    <section id="groceryPanel" class="tab-panel hidden">
+      <p id="groceryWeekLabel" class="week-range"></p>
+      <section id="groceryListSection" class="grocery-section hidden">
+        <p class="fixed-note">Includes your daily breakfast (oats, peanut butter, banana, kefir).</p>
+        <div id="groceryList"></div>
+      </section>
+      <p id="groceryEmptyState" class="empty-state">This week doesn't have a grocery list yet.</p>
+    </section>
+
+    <section id="savedPanel" class="tab-panel hidden">
+      <p id="savedWeeksCount" class="week-range"></p>
+      <ol id="weeksList" class="weeks-list"></ol>
+      <p id="savedEmptyState" class="empty-state">No weeks saved yet. Generate one to get started.</p>
+    </section>
   </main>
+
+  <nav class="tab-bar" aria-label="Sections">
+    <button type="button" class="tab-btn active" data-tab="planPanel">
+      <span class="tab-icon" aria-hidden="true">📅</span>Plan
+    </button>
+    <button type="button" class="tab-btn" data-tab="groceryPanel">
+      <span class="tab-icon" aria-hidden="true">🛒</span>Grocery List
+    </button>
+    <button type="button" class="tab-btn" data-tab="savedPanel">
+      <span class="tab-icon" aria-hidden="true">🗂️</span>Saved Weeks
+    </button>
+  </nav>
 
   <script src="data.js"></script>
   <script src="app.js"></script>
